@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Miss D1K60</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            padding: 40px;
+        }
+        h1 {
+            color: #fff;
+            font-size: 2.5em;
+        }
+        .idol {
+            display: inline-block;
+            width: 45%;
+            margin: 20px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            padding: 20px;
+            transition: transform 0.3s;
+        }
+        .idol:hover {
+            transform: scale(1.05);
+        }
+        img {
+            width: 200px;
+            border-radius: 15px;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            background-color: #ff6f91;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ff4e78;
+        }
+        .votes {
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        #loginScreen {
+            background: linear-gradient(to right, #ff758c, #7e9eff);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            display: inline-block;
+            color: white;
+        }
+        input[type="password"] {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+        #gifContainer, #resultContainer, #imageContainer {
+            margin-top: 20px;
+        }
+        #countdown {
+            color: white;
+            font-size: 20px;
+            margin-top: 20px;
+        }
+        @media (max-width: 768px) {
+            .idol {
+                width: 90%;
+                margin: 10px auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loginScreen">
+        <h1> Nhập mật khẩu để bình chọn</h1>
+        <input type="password" id="passwordInput" placeholder="Mật khẩu">
+        <br>
+        <button onclick="checkPassword()">Đăng nhập</button>
+        <p id="loginError" style="color: yellow;"></p>
+    </div>
+
+    <div id="mainContent" style="display:none;">
+        <h1>🔥 CHỌN AI ĐÂY 🔥</h1>
+        <div id="countdown">⏳ Thời gian còn lại: --:--</div>
+
+        <div class="idol">
+            <h2>PHƯƠNG ANH</h2>
+            <img src="dpa.jpg" alt="dpa">
+            <div class="votes" id="dpaVotes">0 bình chọn</div>
+            <button onclick="vote('dpa')">Bình chọn cho Phương Anh</button>
+        </div>
+
+        <div class="idol">
+            <h2>PHƯƠNG THẢO</h2>
+            <img src="tt.jpg" alt="tt">
+            <div class="votes" id="ttVotes">0 bình chọn</div>
+            <button onclick="vote('tt')">Bình chọn cho Phương Thảo</button>
+        </div>
+
+        <div id="gifContainer"></div>
+        <div id="resultContainer" style="font-size: 22px; font-weight: bold; color: white;"></div>
+        <div id="imageContainer"></div>
+    </div>
+
+    <!-- Confetti JS -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        const correctPassword = "666666";
+        let votes = {
+            dpa: parseInt(localStorage.getItem('dpaVotes')) || 0,
+            tt: parseInt(localStorage.getItem('ttVotes')) || 0
+        };
+
+        function updateVotes() {
+            document.getElementById("dpaVotes").textContent = votes.dpa + " bình chọn";
+            document.getElementById("ttVotes").textContent = votes.tt + " bình chọn";
+        }
+
+        function vote(idol) {
+            if (localStorage.getItem("hasVoted")) {
+                alert("Bạn đã bình chọn rồi nha!");
+                return;
+            }
+
+            votes[idol]++;
+            localStorage.setItem(idol + 'Votes', votes[idol]);
+            localStorage.setItem("hasVoted", "true");
+            updateVotes();
+
+            showGif();
+            confetti({
+                particleCount: 150,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function showGif() {
+            const gifContainer = document.getElementById("gifContainer");
+            gifContainer.innerHTML = `<img src="https://media.giphy.com/media/3ohc1gAiY2YjG7n5W8/giphy.gif" width="250" alt="yay">`;
+            setTimeout(() => gifContainer.innerHTML = "", 4000);
+        }
+
+        function checkPassword() {
+            const input = document.getElementById("passwordInput").value;
+            const error = document.getElementById("loginError");
+            if (input === correctPassword) {
+                document.getElementById("loginScreen").style.display = "none";
+                document.getElementById("mainContent").style.display = "block";
+                updateVotes();
+                startCountdown();
+            } else {
+                error.textContent = "Sai mật khẩu! 😢";
+            }
+        }
+
+        function startCountdown() {
+            const now = new Date().getTime();
+            const deadline = now + 60 * 1000;
+
+            const x = setInterval(function () {
+                const now = new Date().getTime();
+                const distance = deadline - now;
+
+                if (distance < 0) {
+                    clearInterval(x);
+                    document.getElementById("countdown").innerHTML = "⏳ Bình chọn đã kết thúc!";
+                    disableVoting();
+                    showResult();
+                    return;
+                }
+
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById("countdown").innerHTML =
+                    `⏳ Thời gian còn lại: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function disableVoting() {
+            const buttons = document.querySelectorAll("button");
+            buttons.forEach(btn => btn.disabled = true);
+        }
+
+        function showResult() {
+            const result = document.getElementById("resultContainer");
+            const image = document.getElementById("imageContainer");
+
+            if (votes.dpa > votes.tt) {
+                result.textContent = `👑 Người chiến thắng là PHƯƠNG ANH với ${votes.dpa} phiếu!`;
+                image.innerHTML = `<img src="panh.jpg" width="300" alt="Cảm ơn từ Phương Anh">`;
+            } else if (votes.tt > votes.dpa) {
+                result.textContent = `👑 Người chiến thắng là PHƯƠNG THẢO với ${votes.tt} phiếu!`;
+                image.innerHTML = `<img src="thao.jpg" width="300" alt="Cảm ơn từ Phương Thảo">`;
+            } else {
+                result.textContent = "🤝 Hòa rồi, cả hai đều xuất sắc!";
+                image.innerHTML = "";
+            }
+        }
+    </script>
+</body>
+</html>
+
